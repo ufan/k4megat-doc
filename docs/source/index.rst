@@ -15,4 +15,4 @@ Contents
 .. toctree::
 
    k4megat
-   third-party
+   third_party
