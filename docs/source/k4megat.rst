@@ -4,7 +4,92 @@
 
 
 
-1 Service Access
+1 A Quick Tour
+--------------
+
+1. job option
+
+   - configure the properties of svc/tool/alg
+
+   - append the svc/tool/alg to AppMgr
+
+2. component template
+
+3. build system
+
+1.1 Overview
+~~~~~~~~~~~~
+
+Gaudi is a mature software project with continuous development ~20 years.
+The core team has the plan to 'modernize' its codebase due to latest progress both in
+hardware and software technology (most notably new C++ language features).
+However, the architecture is still well-designed even from contemporary point of view.
+Thus, it has been chosen as the recommended event processing framework of key4hep project.
+
+.. image:: gaudi_ev.png
+
+For compatibility reason, Gaudi codebase causes confusion at first glance, i.e. different
+implementation of similar functions/interfaces/abstractions.
+Effort is needed to figure out the 'legacy' code and the 'modern' code.
+
+I will try the best to filter out the best practice of using Gaudi, in the sense that the feature will
+not be deprecated in a long term of view.
+But I'm learning it as well.
+
+1.2 AppMgr (the entrance)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Options configuration (the steering parameters)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+2 Gaudi Basics
+--------------
+
+2.1 Overview
+~~~~~~~~~~~~
+
+2.1.1 Key Concepts
+^^^^^^^^^^^^^^^^^^
+
+.. image:: gaudi_components.png
+
+from `EIC Software Infrastructure Review <https://indico.bnl.gov/event/15644/contributions/65452/attachments/41840/70083/2022.06.29-Experience%20with%20Gaudi-2.pdf>`_
+
+2.1.2 Runtime Object Model
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image:: GaudiArchitecture.png
+
+2.1.3 Application Bootstrap
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image:: GDG_Architecture2.png
+
+2.1.4 Algorithm View Point
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image:: MiniArchitecture.png
+
+2.2 Transient Event Store
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+2.2.1 Data Access Checklist
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+· Do not delete objects that you have registered.
+· Do not delete objects that are contained within an object that you have registered.
+· Do not register local objects, i.e. objects NOT created with the new operator.
+· Do not delete objects which you got from the store via findObject() or retrieveObject().
+· Do delete objects which you create on the heap, i.e. by a call to new, and which you do not register into
+a store.
+
+2.3 Component
+~~~~~~~~~~~~~
+
+2.4 Algorithm, Service & Tool
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+3 Service Access
 ----------------
 
 Gaudi provides two API for accessing a service:
@@ -33,7 +118,7 @@ The usage is similar and both are:
 
 Recommendation: use ServiceHandle unless there is a reason
 
-1.1 Method1
+3.1 Method1
 ~~~~~~~~~~~
 
 .. code:: c++
@@ -57,7 +142,7 @@ Recommendation: use ServiceHandle unless there is a reason
 
 .. image:: ServiceHandle.png
 
-1.2 Method2
+3.2 Method2
 ~~~~~~~~~~~
 
 .. code:: c++
@@ -77,10 +162,10 @@ Recommendation: use ServiceHandle unless there is a reason
 
 SmartIF has no inheritance.
 
-2 Data Access
+4 Data Access
 -------------
 
-2.1 Object Key
+4.1 Object Key
 ~~~~~~~~~~~~~~
 
 - Default RootName: '/Event'
@@ -118,104 +203,6 @@ READ Mode: corret name/Path:
     +-----------+----------------+-----------+
     | /XXX      | invalid        | \         |
     +-----------+----------------+-----------+
-
-3 A Quick Tour
---------------
-
-1. job option
-
-   - configure the properties of svc/tool/alg
-
-   - append the svc/tool/alg to AppMgr
-
-2. component template
-
-3. build system
-
-3.1 Overview
-~~~~~~~~~~~~
-
-Gaudi is a mature software project with continuous development ~20 years.
-The core team has the plan to 'modernize' its codebase due to latest progress both in
-hardware and software technology (most notably new C++ language features).
-However, the architecture is still well-designed even from contemporary point of view.
-Thus, it has been chosen as the recommended event processing framework of key4hep project.
-
-.. image:: gaudi_ev.png
-
-For compatibility reason, Gaudi codebase causes confusion at first glance, i.e. different
-implementation of similar functions/interfaces/abstractions.
-Effort is needed to figure out the 'legacy' code and the 'modern' code.
-
-I will try the best to filter out the best practice of using Gaudi, in the sense that the feature will
-not be deprecated in a long term of view.
-But I'm learning it as well.
-
-3.1.1 Gaudi Modernization
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`Gaudi Evolution for Future Chanllege <https://iopscience.iop.org/article/10.1088/1742-6596/898/4/042044>`_
-
-- Task-based, intra-event parallelization: GaudiHive
-
-- Reentrant Algorithm
-
-  - A subset: Gaudi\:\:Functional framework
-
-- 
-
-3.2 AppMgr (the entrance)
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Options configuration (the steering parameters)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-4 Gaudi Basics
---------------
-
-4.1 Overview
-~~~~~~~~~~~~
-
-4.1.1 Key Concepts
-^^^^^^^^^^^^^^^^^^
-
-.. image:: gaudi_components.png
-
-from `EIC Software Infrastructure Review <https://indico.bnl.gov/event/15644/contributions/65452/attachments/41840/70083/2022.06.29-Experience%20with%20Gaudi-2.pdf>`_
-
-4.1.2 Runtime Object Model
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. image:: GaudiArchitecture.png
-
-4.1.3 Application Bootstrap
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. image:: GDG_Architecture2.png
-
-4.1.4 Algorithm View Point
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. image:: MiniArchitecture.png
-
-4.2 Transient Event Store
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-4.2.1 Data Access Checklist
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-· Do not delete objects that you have registered.
-· Do not delete objects that are contained within an object that you have registered.
-· Do not register local objects, i.e. objects NOT created with the new operator.
-· Do not delete objects which you got from the store via findObject() or retrieveObject().
-· Do delete objects which you create on the heap, i.e. by a call to new, and which you do not register into
-a store.
-
-4.3 Component
-~~~~~~~~~~~~~
-
-4.4 Algorithm, Service & Tool
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 5 Event Data Model
 ------------------
@@ -259,7 +246,36 @@ a store.
 6 Resources
 -----------
 
-6.1 About Gaudi
+6.1 Reference projects
+~~~~~~~~~~~~~~~~~~~~~~
+
+These projects can be used as an example of using ``Key4hep`` components
+and in general of how to build a NHEP experiment software.
+
+6.1.1 EIC
+^^^^^^^^^
+
+This a gold mine, personal recommendation. Actively developed with modern C++.
+The project members are also contributors to several ``Key4hep`` component package.
+
+- NPDet
+
+- joggler
+
+6.1.2 FCC
+^^^^^^^^^
+
+The official demo project recommended by ``key4hep``.
+The community develops ``k4FWCore`` and ``k4SimGeant4``.
+Its code bases are kept in pace with latest development of ``key4hep``.
+
+6.1.3 OpenDetector
+^^^^^^^^^^^^^^^^^^
+
+A experiment neutral detector aims to be used as a testbed for ``ACTS``.
+It's built upon ``DD4hep`` and is kept in pace with the two packages latest development.
+
+6.2 About Gaudi
 ~~~~~~~~~~~~~~~
 
 The `official documentation <https://gaudi-framework.readthedocs.io/en/latest/>`_ is a combination of legacy compatibility and latest development.
@@ -268,19 +284,18 @@ Not needed for end user, recommend for average developer, a must read for softwa
 
 LHCb provides `some tutorial for Gaudi & Modern C++ <https://lhcb.github.io/DevelopKit/>`_
 
-6.2 About the framework
-~~~~~~~~~~~~~~~~~~~~~~~
+6.3 Others
+~~~~~~~~~~
 
-- lhcb
-
-- k4FWCore
-
-- podio doc
+6.3.1 Software build
+^^^^^^^^^^^^^^^^^^^^
 
 - `modern cmake <https://cliutils.gitlab.io/modern-cmake/chapters/install/exporting.html>`_
 
-6.3 Nice Presentation
-~~~~~~~~~~~~~~~~~~~~~
+- git
+
+6.3.2 presentation
+^^^^^^^^^^^^^^^^^^
 
 All based on modern Web technology (HTML5+CSS+JavaScript)
 
