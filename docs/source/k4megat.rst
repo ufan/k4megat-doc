@@ -7,90 +7,89 @@
 1 A Quick Tour
 --------------
 
-1. job option
+1.1 Write and run a job
+~~~~~~~~~~~~~~~~~~~~~~~
 
-   - configure the properties of svc/tool/alg
+Jobs are steered by a python script called ``job option`` file in Gaudi's jargon.
+Users need to write their own job option to customize the job process chain.
+The overall picture is simple:
 
-   - append the svc/tool/alg to AppMgr
+1. ``import`` the services, tools and algorithms needed
 
-2. component template
+2. configure each imported objects by setting their properties
 
-3. build system
+3. append them to the ``AppMgr`` instance
 
-1.1 Overview
-~~~~~~~~~~~~
+4. finally, run this file with ``k4run your_job_file``
 
-Gaudi is a mature software project with continuous development ~20 years.
-The core team has the plan to 'modernize' its codebase due to latest progress both in
-hardware and software technology (most notably new C++ language features).
-However, the architecture is still well-designed even from contemporary point of view.
-Thus, it has been chosen as the recommended event processing framework of key4hep project.
+1.1.1 AppMgr (the entrance point)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. image:: gaudi_ev.png
-
-For compatibility reason, Gaudi codebase causes confusion at first glance, i.e. different
-implementation of similar functions/interfaces/abstractions.
-Effort is needed to figure out the 'legacy' code and the 'modern' code.
-
-I will try the best to filter out the best practice of using Gaudi, in the sense that the feature will
-not be deprecated in a long term of view.
-But I'm learning it as well.
-
-1.2 AppMgr (the entrance)
+1.2 Write a new algorithm
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Options configuration (the steering parameters)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Specify following:
+
+1.2.1 Configuration
+^^^^^^^^^^^^^^^^^^^
+
+- Gaudi\:\:Property
+
+1.2.2 Event Data access
+^^^^^^^^^^^^^^^^^^^^^^^
+
+- Gaudi\:\:DataHandle
+
+1.2.2.1 input
+:::::::::::::
+
+1.2.2.2 Output
+::::::::::::::
+
+1.2.3 Service access
+^^^^^^^^^^^^^^^^^^^^
+
+- Gaudi\:\:ServiceHandle
+
+1.2.4 Processing
+^^^^^^^^^^^^^^^^
+
+- initialize()
+
+- execute()
+
+- finalize()
 
 2 Gaudi Basics
 --------------
 
-2.1 Overview
-~~~~~~~~~~~~
+2.0.1 Overview
+^^^^^^^^^^^^^^
 
-2.1.1 Key Concepts
-^^^^^^^^^^^^^^^^^^
+2.0.1.1 Key Concepts
+::::::::::::::::::::
 
 .. image:: gaudi_components.png
 
 from `EIC Software Infrastructure Review <https://indico.bnl.gov/event/15644/contributions/65452/attachments/41840/70083/2022.06.29-Experience%20with%20Gaudi-2.pdf>`_
 
-2.1.2 Runtime Object Model
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+2.0.1.2 Algorithm, Service & Tool
+:::::::::::::::::::::::::::::::::
 
-.. image:: GaudiArchitecture.png
-
-2.1.3 Application Bootstrap
+2.0.2 Transient Event Store
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. image:: GDG_Architecture2.png
+2.0.3 Services
+^^^^^^^^^^^^^^
 
-2.1.4 Algorithm View Point
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+2.0.4 Component-based programming
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. image:: MiniArchitecture.png
+2.1 How to use
+~~~~~~~~~~~~~~
 
-2.2 Transient Event Store
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-2.2.1 Data Access Checklist
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-· Do not delete objects that you have registered.
-· Do not delete objects that are contained within an object that you have registered.
-· Do not register local objects, i.e. objects NOT created with the new operator.
-· Do not delete objects which you got from the store via findObject() or retrieveObject().
-· Do delete objects which you create on the heap, i.e. by a call to new, and which you do not register into
-a store.
-
-2.3 Component
-~~~~~~~~~~~~~
-
-2.4 Algorithm, Service & Tool
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-3 Service Access
-----------------
+2.2 Service Access
+~~~~~~~~~~~~~~~~~~
 
 Gaudi provides two API for accessing a service:
 
@@ -118,8 +117,8 @@ The usage is similar and both are:
 
 Recommendation: use ServiceHandle unless there is a reason
 
-3.1 Method1
-~~~~~~~~~~~
+2.2.1 Method1
+^^^^^^^^^^^^^
 
 .. code:: c++
 
@@ -142,8 +141,8 @@ Recommendation: use ServiceHandle unless there is a reason
 
 .. image:: ServiceHandle.png
 
-3.2 Method2
-~~~~~~~~~~~
+2.2.2 Method2
+^^^^^^^^^^^^^
 
 .. code:: c++
 
@@ -162,11 +161,21 @@ Recommendation: use ServiceHandle unless there is a reason
 
 SmartIF has no inheritance.
 
-4 Data Access
--------------
+2.3 Data Access
+~~~~~~~~~~~~~~~
 
-4.1 Object Key
-~~~~~~~~~~~~~~
+2.3.1 Data Access Checklist
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+· Do not delete objects that you have registered.
+· Do not delete objects that are contained within an object that you have registered.
+· Do not register local objects, i.e. objects NOT created with the new operator.
+· Do not delete objects which you got from the store via findObject() or retrieveObject().
+· Do delete objects which you create on the heap, i.e. by a call to new, and which you do not register into
+a store.
+
+2.3.2 Object Key
+^^^^^^^^^^^^^^^^
 
 - Default RootName: '/Event'
 
@@ -204,10 +213,10 @@ READ Mode: corret name/Path:
     | /XXX      | invalid        | \         |
     +-----------+----------------+-----------+
 
-5 Event Data Model
+3 Event Data Model
 ------------------
 
-5.1 Extension of EDM4hep
+3.1 Extension of EDM4hep
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 - TPC may need special data model not provided by edm4hep
@@ -218,10 +227,10 @@ READ Mode: corret name/Path:
 
 .. image:: edm4hep_extension.png
 
-5.2 What's in ROOT file
+3.2 What's in ROOT file
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-5.3 A Summary of PODIO/EDM4hep
+3.3 A Summary of PODIO/EDM4hep
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. image:: podio_edm4hep_summary.png
@@ -232,7 +241,7 @@ READ Mode: corret name/Path:
 
 - Podio official doc
 
-5.4 Future development
+3.4 Future development
 ~~~~~~~~~~~~~~~~~~~~~~
 
 - Current ``k4FWCore`` is limited, no MT support.
@@ -243,16 +252,35 @@ READ Mode: corret name/Path:
 
 - Multi-threaded Event Data Service
 
-6 Resources
+4 Geometry model
+----------------
+
+4.1 TPC
+~~~~~~~
+
+- drift distance based on Helper surface
+
+- readout segmentation based on Sensitive surface
+
+  - readout pcb is forced to attach to a Sensitive surface
+
+  - drift anode surface by default is Helper, but can be changed to Sensitive (in xml)
+    if no readout pcb defined
+
+- Multi readout PCB for pixel segmentation is supported
+
+- Only single readout PCB allowed for strip segmentation
+
+5 Resources
 -----------
 
-6.1 Reference projects
+5.1 Reference projects
 ~~~~~~~~~~~~~~~~~~~~~~
 
 These projects can be used as an example of using ``Key4hep`` components
 and in general of how to build a NHEP experiment software.
 
-6.1.1 EIC
+5.1.1 EIC
 ^^^^^^^^^
 
 This a gold mine, personal recommendation. Actively developed with modern C++.
@@ -262,20 +290,20 @@ The project members are also contributors to several ``Key4hep`` component packa
 
 - joggler
 
-6.1.2 FCC
+5.1.2 FCC
 ^^^^^^^^^
 
 The official demo project recommended by ``key4hep``.
 The community develops ``k4FWCore`` and ``k4SimGeant4``.
 Its code bases are kept in pace with latest development of ``key4hep``.
 
-6.1.3 OpenDetector
+5.1.3 OpenDetector
 ^^^^^^^^^^^^^^^^^^
 
 A experiment neutral detector aims to be used as a testbed for ``ACTS``.
 It's built upon ``DD4hep`` and is kept in pace with the two packages latest development.
 
-6.2 About Gaudi
+5.2 About Gaudi
 ~~~~~~~~~~~~~~~
 
 The `official documentation <https://gaudi-framework.readthedocs.io/en/latest/>`_ is a combination of legacy compatibility and latest development.
@@ -284,27 +312,35 @@ Not needed for end user, recommend for average developer, a must read for softwa
 
 LHCb provides `some tutorial for Gaudi & Modern C++ <https://lhcb.github.io/DevelopKit/>`_
 
-6.3 Others
+5.3 Others
 ~~~~~~~~~~
 
-6.3.1 Software build
+5.3.1 Software build
 ^^^^^^^^^^^^^^^^^^^^
 
 - `modern cmake <https://cliutils.gitlab.io/modern-cmake/chapters/install/exporting.html>`_
 
 - git
 
-6.3.2 presentation
-^^^^^^^^^^^^^^^^^^
+5.3.2 Modern C++
+^^^^^^^^^^^^^^^^
 
-All based on modern Web technology (HTML5+CSS+JavaScript)
+- `Cheatsheat of using modern C++ <https://github.com/BartVandewoestyne/Effective-Modern-Cpp>`_
 
-Markdown-based:
+  - 中文学习笔记以及示例代码，作者其它的笔记也值得一读
 
-- `slidev <https://sli.dev/>`_
+- `现代C++教程：高速上手C++11/14/17/20 <https://changkun.de/modern-cpp/>`_
 
-Org-mode based:
+- `C++ Rvalue References Explained <http://thbecker.net/articles/rvalue_references/section_01.html>`_
 
-- `org-re-reveal <https://gitlab.com/oer/org-re-reveal>`_
+  - what, how, why of move and perfect forward
 
-- `ox-spectacle <https://github.com/lorniu/ox-spectacle>`_
+  - `more examples <https://www.artima.com/articles/a-brief-introduction-to-rvalue-references>`_
+
+- `Cpp Guideline <http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines>`_
+
+  - all the best practices of using modern C++
+
+  - Maybe the ultimate source of reference?
+
+- `More C++ Idioms <https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms>`_
