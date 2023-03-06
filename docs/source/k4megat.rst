@@ -406,9 +406,6 @@ It's based on ``CLHEP``'s random number implementation.
     Rndm::Numbers exponential( randSvc(), Rndm::Exponential( 0.2 ) );
     hist->Fill(exponential());
 
-    // 3. only need flat in (0, 1), using the above two methods wit Ranm::Flat(0,1) is also feasible
-    randSvc()->rndm()
-
 6.1.2 Configuration in Job option
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
