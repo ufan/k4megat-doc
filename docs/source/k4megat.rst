@@ -88,8 +88,8 @@ from `EIC Software Infrastructure Review <https://indico.bnl.gov/event/15644/con
 2.1 How to use
 ~~~~~~~~~~~~~~
 
-2.2 Service Access
-~~~~~~~~~~~~~~~~~~
+2.2 General Service Access
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Gaudi provides two API for accessing a service:
 
@@ -161,10 +161,35 @@ Recommendation: use ServiceHandle unless there is a reason
 
 SmartIF has no inheritance.
 
-2.3 Data Access
+2.3 Default Service Access
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some services are predefined and used as the default service implementation if user does not override.
+These services are immediately available without user configuration.
+Dedicated member methods are provided in ``Gaudi::Algorithm`` to access these services conveniently:
+
+.. code:: c++
+
+    SmartIF<IAlgExecStateSvc>& Algorithm::algExecStateSvc() const { return get_svc_( m_aess, "AlgExecStateSvc" ); }
+    SmartIF<IAuditorSvc>&      Algorithm::auditorSvc() const { return get_svc_( m_pAuditorSvc, "AuditorSvc" ); }
+    SmartIF<IChronoStatSvc>&   Algorithm::chronoSvc() const { return get_svc_( m_CSS, "ChronoStatSvc" ); }
+    SmartIF<IDataProviderSvc>& Algorithm::detSvc() const { return get_svc_( m_DDS, "DetectorDataSvc" ); }
+    SmartIF<IConversionSvc>&   Algorithm::detCnvSvc() const { return get_svc_( m_DCS, "DetectorPersistencySvc" ); }
+    SmartIF<IDataProviderSvc>& Algorithm::eventSvc() const { return get_svc_( m_EDS, "EventDataSvc" ); }
+    SmartIF<IConversionSvc>&   Algorithm::eventCnvSvc() const { return get_svc_( m_ECS, "EventPersistencySvc" ); }
+    SmartIF<IHistogramSvc>&    Algorithm::histoSvc() const { return get_svc_( m_HDS, "HistogramDataSvc" ); }
+    SmartIF<INTupleSvc>&       Algorithm::ntupleSvc() const { return get_svc_( m_NTS, "NTupleSvc" ); }
+    SmartIF<IRndmGenSvc>&      Algorithm::randSvc() const { return get_svc_( m_RGS, "RndmGenSvc" ); }
+    SmartIF<IToolSvc>&         Algorithm::toolSvc() const { return get_svc_( m_ptoolSvc, "ToolSvc" ); }
+    SmartIF<IExceptionSvc>&    Algorithm::exceptionSvc() const { return get_svc_( m_EXS, "ExceptionSvc" ); }
+    SmartIF<IAlgContextSvc>&   Algorithm::contextSvc() const { return get_svc_( m_contextSvc, "AlgContextSvc" ); }
+    SmartIF<ITimelineSvc>&     Algorithm::timelineSvc() const { return get_svc_( m_timelineSvc, "TimelineSvc" ); }
+    SmartIF<IHiveWhiteBoard>&  Algorithm::whiteboard() const { return get_svc_( m_WB, "EventDataSvc" ); }
+
+2.4 Data Access
 ~~~~~~~~~~~~~~~
 
-2.3.1 Data Access Checklist
+2.4.1 Data Access Checklist
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 · Do not delete objects that you have registered.
@@ -174,7 +199,7 @@ SmartIF has no inheritance.
 · Do delete objects which you create on the heap, i.e. by a call to new, and which you do not register into
 a store.
 
-2.3.2 Object Key
+2.4.2 Object Key
 ^^^^^^^^^^^^^^^^
 
 - Default RootName: '/Event'
@@ -271,16 +296,187 @@ READ Mode: corret name/Path:
 
 - Only single readout PCB allowed for strip segmentation
 
-5 Resources
+5 System of Units
+-----------------
+
+Packages like ``Geant4``, ``TGeo``, ``DD4hep`` use different system of units.
+Units conversion when using these packages together may cause confusion if not a bug in later analysis.
+
+#+caption Comparison of System of Units in various packages
+
+.. table::
+    :name: tbl:system_of_units
+
+    +--------+--------+--------+---------+--------+--------+
+    | unit   | Geant4 | DD4hep | EDM4hep | ROOT   | CLHEP  |
+    +========+========+========+=========+========+========+
+    | Length | mm     | cm     | mm      | cm     | mm     |
+    +--------+--------+--------+---------+--------+--------+
+    | Energy | MeV    | GeV    | GeV     | GeV    | MeV    |
+    +--------+--------+--------+---------+--------+--------+
+    | Time   | ns     | s      | ns      | s      | ns     |
+    +--------+--------+--------+---------+--------+--------+
+    | Angle  | radian | radian | radian  | degree | radian |
+    +--------+--------+--------+---------+--------+--------+
+
+Note:
+``DD4hep`` default units are same as ``ROOT``, see definition in ``DD4hep/DDParsers/include/Evaluator/DD4hepUnits.h``.
+Units in ``DD4hep`` can be changed to be same as ``Geant4`` when build with ``DD4HEP_USE_GEANT4_UNITS=ON``.
+``DD4hep`` also provides a patch of ``TGeo`` to use ``Geant4`` units as well.
+This build option is also passed to sub-projects using ``DD4hepConfig.cmake`` (see ReleaseNote ``DD4hep/doc/ReleaseNotes.md:1110``).
+By default, this option is off (also in key4hep Spack default).
+
+``Meagat`` software currently follows ``EDM4hep`` convention, using (GeV, mm, ns, radian) as default units.
+Header ``k4megat/sim/kernel/include/SimKernel/Units.h`` gives a definition of these units:
+
+.. code:: c++
+
+    using namespace megat;
+
+    // default length unit
+    float d = 5 * edmdefault::length;
+
+    // default energy unit
+    double e = 100. * edmdefault::energy;
+
+    // default time unit
+     double t = 2. * edmdefault::time;
+
+This also applies to data read from ``EDM4hep`` data from disk.
+
+The best practice is always explicitly specifying the unit when using a value, as shown above.
+This includes the numerical ``Gaudi::Property`` for configuring an algorithm like:
+
+.. code:: c++
+
+    // in class declaration header
+    Gaudi::Property<float> m_wValue{ this, "wvalue", 25, "[eV] Mean activation energy during primary ionization" };
+
+    // in member function: initialize()
+    m_wValue        = m_wValue * CLHEP::eV;
+
+Unit conversion may be needed when passing numerical values from one package to another.
+Conversion factors between popular packages are defined in ``Units.h`` as well:
+
+.. code:: c++
+
+    using namespace megat;
+
+    // EDM <-> Geant4
+    auto* g4Particle = new G4PrimaryParticle( mcp.getPDG(), mom.x * edm2g4::energy,
+                                              mom.y * edm2g4::energy, mom.z * edm2g4::energy );
+
+    // EDM <-> DD4hep
+    // get a position from EDM4hep root file
+    auto gpos    = hit.getPosition(); 
+    // use DD4hep's utility to do some calculation
+    auto drift_d = anode_surf->distance( edm2dd::length * gpos ) * dd2edm::length;
+
+6 Random number service
+-----------------------
+
+Basic picture:
+
+- **random engine** generates random number in a flat distribution in (0, 1)
+
+  - it's the most basic stuff, thus called 'engine'
+
+- **random generator** uses a **random engine** to produce all types of probability distribution
+
+- **random service** provides an interface for end users configuring and using the engine or the generator
+
+6.1 RndmGenSv
+~~~~~~~~~~~~~
+
+This is the default service for random number generation in ``Gaudi``.
+It is created automatically in a lazy way.
+It's based on ``CLHEP``'s random number implementation.
+
+6.1.1 Use in Algorithm development
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: c++
+
+    // 1. as a generator
+    auto gen = randSvc()->generator( Rndm::Gauss( 0.5, 0.2 ) );
+    gen->shoot();
+    gen->shootArray(vector, number);
+
+    // 2. as a random number (a wrapper of generator)
+    Rndm::Numbers exponential( randSvc(), Rndm::Exponential( 0.2 ) );
+    hist->Fill(exponential());
+
+    // 3. only need flat in (0, 1), using the above two methods wit Ranm::Flat(0,1) is also feasible
+    randSvc()->rndm()
+
+6.1.2 Configuration in Job option
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+    # choose an engine, default: HepRndm::Engine<CLHEP::RanluxEngine>
+    RndmGenSvc.Engine = "HepRndm::Engine<CLHEP::Ranlux64Engine>"
+
+    # set seeds
+    RndmGenSvc.Engine.Seeds = [455,666, 0]
+
+6.1.3 List of engines
+^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: c++
+
+    // /home/yong/src/physics/key4hep/Gaudi/GaudiSvc/src/RndmGenSvc/HepRndmEngines.cpp
+      HepRndm::Engine<DualRand>
+      HepRndm::Engine<TripleRand>
+      HepRndm::Engine<DRand48Engine>
+      HepRndm::Engine<Hurd160Engine>
+      HepRndm::Engine<Hurd288Engine>
+      HepRndm::Engine<HepJamesRandom>
+      HepRndm::Engine<MTwistEngine>
+      HepRndm::Engine<RanecuEngine>
+      HepRndm::Engine<Ranlux64Engine>
+      HepRndm::Engine<RanluxEngine>
+      HepRndm::Engine<RanshiEngine>
+
+6.1.4 List of generators
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: c++
+
+    // /home/yong/src/physics/key4hep/Gaudi/GaudiKernel/include/GaudiKernel/RndmGenerators.h
+    Rndm::Gauss;
+    Rndm::Exponential;
+    Rndm::Chi2;
+    Rndm::BreitWigner;
+    Rndm::Landau;
+    Rndm::BreitWignerCutOff;
+    Rndm::StudentT;
+    Rndm::Gamma;
+    Rndm::Poisson;
+    Rndm::Binomial;
+    Rndm::Flat;
+    Rndm::Bit;
+    Rndm::DefinedPdf;
+    Rndm::GaussianTail;
+
+6.2 Class diagram
+~~~~~~~~~~~~~~~~~
+
+It's possible to implement a new random number service.
+This diagram shows the implementation details.
+
+.. image:: rndm_class.png
+
+7 Resources
 -----------
 
-5.1 Reference projects
+7.1 Reference projects
 ~~~~~~~~~~~~~~~~~~~~~~
 
 These projects can be used as an example of using ``Key4hep`` components
 and in general of how to build a NHEP experiment software.
 
-5.1.1 EIC
+7.1.1 EIC
 ^^^^^^^^^
 
 This a gold mine, personal recommendation. Actively developed with modern C++.
@@ -290,20 +486,20 @@ The project members are also contributors to several ``Key4hep`` component packa
 
 - joggler
 
-5.1.2 FCC
+7.1.2 FCC
 ^^^^^^^^^
 
 The official demo project recommended by ``key4hep``.
 The community develops ``k4FWCore`` and ``k4SimGeant4``.
 Its code bases are kept in pace with latest development of ``key4hep``.
 
-5.1.3 OpenDetector
+7.1.3 OpenDetector
 ^^^^^^^^^^^^^^^^^^
 
 A experiment neutral detector aims to be used as a testbed for ``ACTS``.
 It's built upon ``DD4hep`` and is kept in pace with the two packages latest development.
 
-5.2 About Gaudi
+7.2 About Gaudi
 ~~~~~~~~~~~~~~~
 
 The `official documentation <https://gaudi-framework.readthedocs.io/en/latest/>`_ is a combination of legacy compatibility and latest development.
@@ -312,17 +508,17 @@ Not needed for end user, recommend for average developer, a must read for softwa
 
 LHCb provides `some tutorial for Gaudi & Modern C++ <https://lhcb.github.io/DevelopKit/>`_
 
-5.3 Others
+7.3 Others
 ~~~~~~~~~~
 
-5.3.1 Software build
+7.3.1 Software build
 ^^^^^^^^^^^^^^^^^^^^
 
 - `modern cmake <https://cliutils.gitlab.io/modern-cmake/chapters/install/exporting.html>`_
 
 - git
 
-5.3.2 Modern C++
+7.3.2 Modern C++
 ^^^^^^^^^^^^^^^^
 
 - `Cheatsheat of using modern C++ <https://github.com/BartVandewoestyne/Effective-Modern-Cpp>`_
