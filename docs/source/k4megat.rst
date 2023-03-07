@@ -159,6 +159,9 @@ Recommendation: use ServiceHandle unless there is a reason
 
     // ... use m_svc as a pointer
 
+    /* or, access the service temporarily in GaudiAlgorithm */
+    auto m_svc = svc<ITargetSvc>(name, create_if_noexist);
+
 SmartIF has no inheritance.
 
 2.3 Default Service Access
@@ -389,33 +392,60 @@ Basic picture:
 ~~~~~~~~~~~~~
 
 This is the default service for random number generation in ``Gaudi``.
-It is created automatically in a lazy way.
+It is created automatically (without user configuration), in a lazy way, i.e. created when used.
 It's based on ``CLHEP``'s random number implementation.
 
 6.1.1 Use in Algorithm development
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Most of the time, user only needs to know how to use the **random generator** when developing his/her algorithm.
+
 .. code:: c++
 
-    // 1. as a generator
-    auto gen = randSvc()->generator( Rndm::Gauss( 0.5, 0.2 ) );
-    gen->shoot();
-    gen->shootArray(vector, number);
+    // random service is directly available by member function:
+    randSvc();
 
-    // 2. as a random number (a wrapper of generator)
+    // 1. by generator interface
+    auto gen = randSvc()->generator( Rndm::Gauss( 0.5, 0.2 ) );
+    auto value = gen->shoot();
+    // or array
+    gen->shootArray(vector_values， number);
+
+    // 2. by number interface (a wrapper of generator)
     Rndm::Numbers exponential( randSvc(), Rndm::Exponential( 0.2 ) );
     hist->Fill(exponential());
+
+    // or initialize it later
+    Rndm::Numbers exponential;
+    exponential.initialize( randSvc(), Rndm::Exponential( 0.2 ) );
 
 6.1.2 Configuration in Job option
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+The default engine is ``HepRndm::Engine<CLHEP::Ranlux64Engine>`` with fixed seed number '1234567'.
+Engine can be customized in job option.
+
 .. code:: python
 
-    # choose an engine, default: HepRndm::Engine<CLHEP::RanluxEngine>
-    RndmGenSvc.Engine = "HepRndm::Engine<CLHEP::Ranlux64Engine>"
+    # 1. Just change the engine type
+    from Configurables import RndmGenSvc
 
-    # set seeds
-    RndmGenSvc.Engine.Seeds = [455,666, 0]
+    rdmSvc = RndmGenSvc("RndmGenSvc") # default name for auto-recognizing
+    rdmSvc.Engine = "HepRndm::Engine<CLHEP::HepJamesRandom>"
+
+    AppMgr.ExtSvc +=[rdmSvc]
+
+    # 2. Also customized the engine params
+    from Configurables import HepRndm__Engine_CLHEP__HepJamesRandom_
+
+    rdmEngine = HepRndm__Engine_CLHEP__HepJamesRandom_("RndmGenSvc.Engine") # default name for auto-recognizing
+    rdmEngine.SetSingleton = True
+    rdmEngine.Seeds = [5685]
+
+    AppMgr.ExtSvc +=[rdmEngine]
+
+    # optional: pass the name to rdmSvc for correct messaging
+    rdmSvc.Engine = rdmEngine.name()
 
 6.1.3 List of engines
 ^^^^^^^^^^^^^^^^^^^^^
@@ -476,19 +506,43 @@ and in general of how to build a NHEP experiment software.
 7.1.1 EIC
 ^^^^^^^^^
 
-This a gold mine, personal recommendation. Actively developed with modern C++.
+**EIC** is building a complete software stack based on ``key4hep`` components.
+This a gold mine, personal recommendation.
+Actively developed with modern C++.
 The project members are also contributors to several ``Key4hep`` component package.
 
-- NPDet
+`NPDet <https://eicweb.phy.anl.gov/EIC/NPDet.git>`_
+    A collection of detector models for EIC, based on DD4hep
 
-- joggler
+`npsim <https://github.com/eic/npsim>`_
+    DD4hep plugins for EIC simulation
+
+`EPIC <https://github.com/eic/epic>`_
+    Complete detector model of EIC experiment
+
+`EDM4eic <https://github.com/eic/EDM4eic>`_
+    event data model based on PODIO and EDM4hep
+
+`Juggler <https://eicweb.phy.anl.gov/EIC/juggler>`_
+    EIC software for prototype study. Based on Gaudi, still actively developed.
+
+EICrecon
+    EIC official software based on JANA2
+
+    - algorithms migrated from Juggler to JANA2 in process
+
+    - also depends on NPDET and EDM4eic
 
 7.1.2 FCC
 ^^^^^^^^^
 
-The official demo project recommended by ``key4hep``.
-The community develops ``k4FWCore`` and ``k4SimGeant4``.
-Its code bases are kept in pace with latest development of ``key4hep``.
+- The official demo project recommended by ``key4hep``.
+
+  - The community develops ``k4FWCore`` and ``k4SimGeant4``.
+
+- Its code bases are kept in pace with latest development of ``key4hep``.
+
+- CEPCSW is a descendant
 
 7.1.3 OpenDetector
 ^^^^^^^^^^^^^^^^^^
@@ -502,8 +556,6 @@ It's built upon ``DD4hep`` and is kept in pace with the two packages latest deve
 The `official documentation <https://gaudi-framework.readthedocs.io/en/latest/>`_ is a combination of legacy compatibility and latest development.
 But it provides a very nice overview of the architecture design and key building blocks.
 Not needed for end user, recommend for average developer, a must read for software builder/maintainer.
-
-LHCb provides `some tutorial for Gaudi & Modern C++ <https://lhcb.github.io/DevelopKit/>`_
 
 7.3 Others
 ~~~~~~~~~~
