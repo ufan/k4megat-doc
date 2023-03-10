@@ -328,21 +328,33 @@ A parameterized geometry model is available for simulation.
 
 `Megat Simulation Model <megat_geometry_model.png>`_
 
-4.1 TPC
-~~~~~~~
+4.1 Time Projection Chamber (TPC)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- drift distance based on Helper surface
+- Drift distance based on Helper surface
 
-- readout segmentation based on Sensitive surface
+- Readout segmentation based on Sensitive surface
 
-  - readout pcb is forced to attach to a Sensitive surface
+  - Readout pcb is forced to attach to a Sensitive surface
 
-  - drift anode surface by default is Helper, but can be changed to Sensitive (in xml)
+  - Drift anode surface by default is Helper, but can be changed to Sensitive (in xml)
     if no readout pcb defined
 
 - Multi readout PCB for pixel segmentation is supported
 
 - Only single readout PCB allowed for strip segmentation
+
+.. table:: Parameters of TPC geometry
+    :name: tbl:geom_tpc_param
+
+    +------+---------+---------+
+    | name | meaning | default |
+    +------+---------+---------+
+    | \    | \       | \       |
+    +------+---------+---------+
+
+4.2 CZT Calorimeter (Calo)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 5 System of Units
 -----------------
@@ -350,9 +362,7 @@ A parameterized geometry model is available for simulation.
 Packages like ``Geant4``, ``TGeo``, ``DD4hep`` use different system of units.
 Units conversion when using these packages together may cause confusion if not a bug in later analysis.
 
-#+caption Comparison of System of Units in various packages
-
-.. table::
+.. table:: Comparison of System of Units in various packages
     :name: tbl:system_of_units
 
     +--------+--------+--------+---------+--------+--------+
