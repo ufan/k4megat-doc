@@ -326,7 +326,7 @@ READ Mode: corret name/Path:
 
 A parameterized geometry model is available for simulation.
 
-`Megat Simulation Model <megat_geometry_model.png>`_
+.. image:: megat_geometry_model.png
 
 4.1 Time Projection Chamber (TPC)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
