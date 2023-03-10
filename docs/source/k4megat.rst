@@ -60,6 +60,50 @@ Specify following:
 
 - finalize()
 
+1.3 What is saved in ROOT file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``EDM4hep`` collections are serialized into ROOT file in flattened structure by ``PodioDataSvc``.
+When they are read back, the ``PodioDataSvc`` will assemble these flat pieces back as a usable ``EDM4hep`` collection.
+
+Knowing these flat pieces may be helpful if using third-party tools for quick analysis.
+Besides, there are other metadata objects saved alongside the collection components.
+
+#+name tbl:root\_format
+
+.. table::
+
+    +---------------+----------------------------------------------------+-------------------------------------------+------------------------------------------------------------+----------------------------------------+
+    | tree name     | branch                                             | type                                      | description                                                | entry number                           |
+    +===============+====================================================+===========================================+============================================================+========================================+
+    | events        | coll\_name (specified by user, e.g. ``MyHits``)    | ``vector<HitData>``                       | POD part of event data model class (here it's ``HitData``) | event-based                            |
+    +---------------+----------------------------------------------------+-------------------------------------------+------------------------------------------------------------+----------------------------------------+
+    | \             | reference member of coll\_name (e.g. ``MyHits#0``) | ``vector<ObjectID>``                      | references to other edm41ep collections                    | \                                      |
+    +---------------+----------------------------------------------------+-------------------------------------------+------------------------------------------------------------+----------------------------------------+
+    | \             | vector member of coll\_name (e.g. ``MyHits_0``)    | ``vector<VecMemType>``                    | vector member of arbitrary type                            | \                                      |
+    +---------------+----------------------------------------------------+-------------------------------------------+------------------------------------------------------------+----------------------------------------+
+    | metadata      | ``CollectionIDs``                                  | ``podio::CollectionIDTable``              | mapping between ``coll_name`` and collection id            | single entry                           |
+    +---------------+----------------------------------------------------+-------------------------------------------+------------------------------------------------------------+----------------------------------------+
+    | \             | ``PodioVersion``                                   | ``struct {uint16_t major, minor, patch}`` | PODIO version used                                         | \                                      |
+    +---------------+----------------------------------------------------+-------------------------------------------+------------------------------------------------------------+----------------------------------------+
+    | \             | ``CollectionTypeInfo``                             | ``vector<tuple<int, string, bool>>``      | info of saved collections: collid, type, isSubsetColl      | \                                      |
+    +---------------+----------------------------------------------------+-------------------------------------------+------------------------------------------------------------+----------------------------------------+
+    | \             | ``gaudiConfigOptions``                             | ``string``                                | Gaudi job option generating this ROOT file                 | \                                      |
+    +---------------+----------------------------------------------------+-------------------------------------------+------------------------------------------------------------+----------------------------------------+
+    | \             | ``key4hepStack``                                   | ``string``                                | version of key4stack used if plausible, otherwise empty    | \                                      |
+    +---------------+----------------------------------------------------+-------------------------------------------+------------------------------------------------------------+----------------------------------------+
+    | evt\_metadata | ``evtMD``                                          | ``podio::GenericParameters``              | event metadata                                             | event-based                            |
+    +---------------+----------------------------------------------------+-------------------------------------------+------------------------------------------------------------+----------------------------------------+
+    | col\_metadata | ``colMD``                                          | ``map<int,podio::GenericParameters>``     | metadata about edm4hep collections                         | single entry, indexed by collection id |
+    +---------------+----------------------------------------------------+-------------------------------------------+------------------------------------------------------------+----------------------------------------+
+    | run\_metadata | ``runMD``                                          | ``map<int,podio::GenericParameters>``     | run metadata                                               | single entry, indexed by run id        |
+    +---------------+----------------------------------------------------+-------------------------------------------+------------------------------------------------------------+----------------------------------------+
+
+**NOTE:**
+the data objects stored are based on current implementation of ``k4FWCore``, which in turn built on top of ``PODIO::EventStore``.
+There is a plan to replace ``EventStore`` in the near future, thus forcing ``k4FWCore`` upgrading.
+So, the current format may change with the upstream ``k4FWCore``'s upgrade in the future.
+
 2 Gaudi Basics
 --------------
 
@@ -255,10 +299,7 @@ READ Mode: corret name/Path:
 
 .. image:: edm4hep_extension.png
 
-3.2 What's in ROOT file
-~~~~~~~~~~~~~~~~~~~~~~~
-
-3.3 A Summary of PODIO/EDM4hep
+3.2 A Summary of PODIO/EDM4hep
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. image:: podio_edm4hep_summary.png
@@ -269,7 +310,7 @@ READ Mode: corret name/Path:
 
 - Podio official doc
 
-3.4 Future development
+3.3 Future development
 ~~~~~~~~~~~~~~~~~~~~~~
 
 - Current ``k4FWCore`` is limited, no MT support.
@@ -282,6 +323,10 @@ READ Mode: corret name/Path:
 
 4 Geometry model
 ----------------
+
+A parameterized geometry model is available for simulation.
+
+`Megat Simulation Model <megat_geometry_model.png>`_
 
 4.1 TPC
 ~~~~~~~
